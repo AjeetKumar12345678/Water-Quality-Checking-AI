@@ -3,14 +3,23 @@ import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
 
+# =========================================================
+# Create Fuzzy System
+# =========================================================
+
 def create_fuzzy_system():
+
+    # -----------------------------------------------------
+    # Input variables
+    # -----------------------------------------------------
+
     ph = ctrl.Antecedent(
         np.arange(0, 14.1, 0.1),
         "ph"
     )
 
     turbidity = ctrl.Antecedent(
-        np.arange(0, 21, 0.1),
+        np.arange(0, 20.1, 0.1),
         "turbidity"
     )
 
@@ -19,14 +28,20 @@ def create_fuzzy_system():
         "tds"
     )
 
+
+    # -----------------------------------------------------
+    # Output variable
+    # -----------------------------------------------------
+
     quality = ctrl.Consequent(
         np.arange(0, 101, 1),
         "quality"
     )
 
-    # -------------------------
-    # pH membership functions
-    # -------------------------
+
+    # =====================================================
+    # pH Membership Functions
+    # =====================================================
 
     ph["acidic"] = fuzz.trapmf(
         ph.universe,
@@ -40,12 +55,13 @@ def create_fuzzy_system():
 
     ph["alkaline"] = fuzz.trapmf(
         ph.universe,
-        [7.5, 8.5, 14, 14]
+        [7.5, 8.5, 14.0, 14.0]
     )
 
-    # -------------------------
-    # Turbidity
-    # -------------------------
+
+    # =====================================================
+    # Turbidity Membership Functions
+    # =====================================================
 
     turbidity["low"] = fuzz.trapmf(
         turbidity.universe,
@@ -62,9 +78,10 @@ def create_fuzzy_system():
         [8, 13, 20, 20]
     )
 
-    # -------------------------
-    # TDS
-    # -------------------------
+
+    # =====================================================
+    # TDS Membership Functions
+    # =====================================================
 
     tds["low"] = fuzz.trapmf(
         tds.universe,
@@ -81,9 +98,10 @@ def create_fuzzy_system():
         [600, 750, 1000, 1000]
     )
 
-    # -------------------------
-    # Quality
-    # -------------------------
+
+    # =====================================================
+    # Water Quality Membership Functions
+    # =====================================================
 
     quality["poor"] = fuzz.trapmf(
         quality.universe,
@@ -105,128 +123,190 @@ def create_fuzzy_system():
         [80, 92, 100, 100]
     )
 
-    # -------------------------
-    # Fuzzy rules
-    # -------------------------
+
+    # =====================================================
+    # Fuzzy Rules
+    # =====================================================
 
     rules = [
 
+        # Excellent
         ctrl.Rule(
-            ph["normal"] &
-            turbidity["low"] &
-            tds["low"],
+            ph["normal"]
+            & turbidity["low"]
+            & tds["low"],
             quality["excellent"]
         ),
 
+        # Good
         ctrl.Rule(
-            ph["normal"] &
-            turbidity["low"] &
-            tds["medium"],
+            ph["normal"]
+            & turbidity["low"]
+            & tds["medium"],
             quality["good"]
         ),
 
         ctrl.Rule(
-            ph["normal"] &
-            turbidity["medium"] &
-            tds["medium"],
+            ph["normal"]
+            & turbidity["medium"]
+            & tds["low"],
             quality["good"]
         ),
 
         ctrl.Rule(
-            ph["normal"] &
-            turbidity["high"],
-            quality["poor"]
+            ph["normal"]
+            & turbidity["medium"]
+            & tds["medium"],
+            quality["good"]
         ),
 
+        # Moderate
         ctrl.Rule(
-            ph["acidic"] &
-            turbidity["high"],
-            quality["poor"]
-        ),
-
-        ctrl.Rule(
-            ph["alkaline"] &
-            tds["high"],
+            ph["normal"]
+            & turbidity["low"]
+            & tds["high"],
             quality["moderate"]
         ),
 
         ctrl.Rule(
-            ph["acidic"] &
-            tds["high"],
-            quality["poor"]
-        ),
-
-        ctrl.Rule(
-            turbidity["high"] &
-            tds["high"],
-            quality["poor"]
-        ),
-
-        ctrl.Rule(
-            ph["normal"] &
-            turbidity["low"] &
-            tds["high"],
+            ph["normal"]
+            & turbidity["medium"]
+            & tds["high"],
             quality["moderate"]
         ),
 
-        # Additional fallback rules
+        ctrl.Rule(
+            ph["alkaline"]
+            & tds["high"],
+            quality["moderate"]
+        ),
+
+        ctrl.Rule(
+            ph["alkaline"]
+            & turbidity["medium"],
+            quality["moderate"]
+        ),
+
+        # Poor
+        ctrl.Rule(
+            ph["normal"]
+            & turbidity["high"],
+            quality["poor"]
+        ),
+
+        ctrl.Rule(
+            ph["acidic"]
+            & turbidity["high"],
+            quality["poor"]
+        ),
+
+        ctrl.Rule(
+            ph["acidic"]
+            & tds["high"],
+            quality["poor"]
+        ),
+
+        ctrl.Rule(
+            turbidity["high"]
+            & tds["high"],
+            quality["poor"]
+        ),
+
+        # General pH rules
         ctrl.Rule(
             ph["acidic"],
             quality["poor"]
         ),
 
         ctrl.Rule(
-            ph["alkaline"] &
-            turbidity["medium"],
-            quality["moderate"]
-        ),
-
-        ctrl.Rule(
-            ph["normal"] &
-            turbidity["medium"] &
-            tds["low"],
-            quality["good"]
-        ),
-
-        ctrl.Rule(
-            ph["normal"] &
-            turbidity["medium"] &
-            tds["high"],
-            quality["moderate"]
-        ),
-
-        ctrl.Rule(
-            ph["normal"] &
-            turbidity["low"] &
-            tds["low"],
-            quality["excellent"]
+            ph["alkaline"]
+            & turbidity["high"],
+            quality["poor"]
         ),
     ]
+
 
     return ctrl.ControlSystem(rules)
 
 
-def assess_water_quality(ph_value, turbidity_value, tds_value):
+# =========================================================
+# Assess Water Quality
+# =========================================================
 
+def assess_water_quality(
+    ph_value,
+    turbidity_value,
+    tds_value
+):
+
+    # Validate inputs
+    if not 0 <= ph_value <= 14:
+        raise ValueError(
+            "pH must be between 0 and 14."
+        )
+
+    if not 0 <= turbidity_value <= 20:
+        raise ValueError(
+            "Turbidity must be between 0 and 20 NTU."
+        )
+
+    if not 0 <= tds_value <= 1000:
+        raise ValueError(
+            "TDS must be between 0 and 1000 mg/L."
+        )
+
+
+    # Create fuzzy system
     system = create_fuzzy_system()
 
-    simulation = ctrl.ControlSystemSimulation(system)
+    simulation = ctrl.ControlSystemSimulation(
+        system
+    )
 
+
+    # Set inputs
     simulation.input["ph"] = ph_value
     simulation.input["turbidity"] = turbidity_value
     simulation.input["tds"] = tds_value
 
+
+    # Run fuzzy inference
     simulation.compute()
 
-    score = simulation.output["quality"]
+
+    # Make sure the output exists
+    if "quality" not in simulation.output:
+
+        raise RuntimeError(
+            "The fuzzy system could not produce "
+            "a quality score for these parameters."
+        )
+
+
+    score = float(
+        simulation.output["quality"]
+    )
+
+
+    # =====================================================
+    # Convert score into category
+    # =====================================================
 
     if score < 40:
+
         category = "Poor"
+
     elif score < 60:
+
         category = "Moderate"
+
     elif score < 80:
+
         category = "Good"
+
     else:
+
         category = "Excellent"
+
 
     return round(score, 2), category
