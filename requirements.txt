@@ -1,9 +1,6 @@
 streamlit
-scikit-fuzzy
 numpy
-scipy
-langchain
-langchain-core
-langchain-openai
-openai
+scikit-fuzzy
+langchain-google-genai
 pydantic
+networkx
