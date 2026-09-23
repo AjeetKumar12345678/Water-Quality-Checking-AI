@@ -12,39 +12,59 @@ st.set_page_config(
     layout="wide"
 )
 
-# Professional Water Theme Custom CSS Styling
+# Professional Creative Water Theme CSS (Floating Bubbles & Glassmorphism)
 st.markdown("""
     <style>
-    .main {
-        background: linear-gradient(135deg, #f0f8ff 0%, #e6f2ff 100%);
+    /* Creative Water Background Gradient with Animated Bubbles Vibe */
+    .stApp {
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        background-attachment: fixed;
     }
-    h1, h2, h3 {
-        color: #004080;
-        font-family: 'Helvetica Neue', sans-serif;
+    
+    /* Text Styling for Dark/Creative Theme */
+    h1, h2, h3, h4, h5, h6, p, label {
+        color: #f0f4f8 !important;
     }
+    
+    /* Glassmorphism Containers */
+    div.stTabs [data-baseweb="tab-list"] {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 5px;
+    }
+    
+    /* Custom Styling for Buttons */
     .stButton>button {
         width: 100%;
-        background: linear-gradient(90deg, #0077b6 0%, #00b4d8 100%);
+        background: linear-gradient(90deg, #00b4d8 0%, #0077b6 100%);
         color: white;
         font-weight: bold;
         border-radius: 10px;
         height: 50px;
         border: none;
-        box-shadow: 0 4px 10px rgba(0, 119, 182, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
         transition: 0.3s;
     }
     .stButton>button:hover {
-        background: linear-gradient(90deg, #03045e 0%, #0077b6 100%);
-        color: #ffffff;
-        box-shadow: 0 6px 15px rgba(3, 4, 94, 0.4);
+        background: linear-gradient(90deg, #90e0ef 0%, #00b4d8 100%);
+        color: #03045e;
+        box-shadow: 0 6px 20px rgba(144, 224, 239, 0.6);
     }
-    .metric-container {
-        background-color: #ffffff;
-        padding: 20px;
+    
+    /* Metric Cards Styling */
+    [data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(10px);
+        padding: 15px;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        border-left: 5px solid #00b4d8;
-        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: rgba(15, 32, 39, 0.95);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -54,20 +74,18 @@ st.title("💧 AI-Powered Water Quality Assessment System")
 st.markdown("##### Advanced Water Safety Analytics powered by **Google Gemini AI** & **Fuzzy Logic Control Systems**")
 st.markdown("---")
 
-# Retrieve Gemini API Key securely
+# Retrieve Gemini API Key securely from Streamlit Secrets (Hidden from UI completely)
 api_key = ""
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
 
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/water.png", width=70)
-    st.header("⚙️ System Control")
-    user_api_input = st.text_input("Gemini API Key", value=api_key, type="password", help="Enter your Google AI Studio Gemini API Key")
-    if user_api_input:
-        api_key = user_api_input
+    st.header("🌊 Dashboard Info")
+    st.info("This professional tool evaluates water potability using artificial intelligence text parsing combined with precise fuzzy logic mathematics seamlessly.")
     st.markdown("---")
-    st.markdown("### 🌊 About Dashboard")
-    st.info("This professional tool evaluates water potability using artificial intelligence text parsing combined with precise fuzzy logic mathematics.")
+    st.markdown("### 🫧 Water Vibe Active")
+    st.write("System running on secure cloud configuration.")
 
 # Pydantic schema for LangChain structured extraction
 class WaterParameters(BaseModel):
@@ -140,7 +158,7 @@ with tab1:
             except Exception as e:
                 st.warning(f"AI Extraction warning ({e}). Using default fallback parameters.")
         elif not api_key:
-            st.warning("⚠️ Gemini API key missing. Please check your sidebar or secrets configuration.")
+            st.warning("⚠️ Gemini API key missing in Streamlit Secrets configuration.")
 
 with tab2:
     st.subheader("Manual Parameter Adjustment")
