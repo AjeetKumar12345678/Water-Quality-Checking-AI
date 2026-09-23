@@ -1,0 +1,6 @@
+streamlit
+numpy
+scikit-fuzzy
+langchain
+langchain-openai
+python-dotenv
