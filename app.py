@@ -2,8 +2,8 @@ import streamlit as st
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
-from google import genai
-from google.genai import types
+import google.generativeai as genai
+import json
 from pydantic import BaseModel, Field
 
 # Page Configuration
@@ -75,12 +75,6 @@ with st.sidebar:
     st.markdown("### 🫧 Water Vibe Active")
     st.write("System running on secure cloud configuration.")
 
-# Pydantic schema for Gemini structured output
-class WaterParameters(BaseModel):
-    pH: float = Field(description="pH level of the water, typically between 0 and 14")
-    turbidity: float = Field(description="Turbidity level in NTU (Nephelometric Turbidity Units)")
-    tds: float = Field(description="Total Dissolved Solids in ppm or mg/L")
-
 # Fuzzy Logic Calculation Engine
 def evaluate_fuzzy_water(pH_val, turbidity_val, tds_val):
     pH = ctrl.Antecedent(np.arange(0, 14.1, 0.1), 'pH')
@@ -138,17 +132,16 @@ with tab1:
         if api_key and user_query:
             try:
                 with st.spinner("✨ Gemini AI is extracting parameters..."):
-                    client = genai.Client(api_key=api_key)
-                    response = client.models.generate_content(
-                        model='gemini-1.5-flash',
-                        contents=f"Extract water test parameters accurately from this text: {user_query}",
-                        config=types.GenerateContentConfig(
-                            response_mime_type="application/json",
-                            response_schema=WaterParameters,
-                        ),
-                    )
-                    import json
-                    data = json.loads(response.text)
+                    genai.configure(api_key=api_key)
+                    # Using the standard gemini-1.5-flash with proper JSON prompt instruction
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    prompt = f"""Extract water test parameters from the following text and return ONLY a valid JSON object with keys: "pH" (float), "turbidity" (float), and "tds" (float). No markdown formatting or extra text.
+                    Text: {user_query}"""
+                    
+                    response = model.generate_content(prompt)
+                    clean_text = response.text.strip().replace("```json", "").replace("```", "")
+                    data = json.loads(clean_text)
+                    
                     ph_val = float(data.get("pH", 7.0))
                     turbidity_val = float(data.get("turbidity", 5.0))
                     tds_val = float(data.get("tds", 300.0))
