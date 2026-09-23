@@ -1,6 +1,6 @@
 streamlit
 numpy
 scikit-fuzzy
-langchain-google-genai
+google-genai
 pydantic
 networkx

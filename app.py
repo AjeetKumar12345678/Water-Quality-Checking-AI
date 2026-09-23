@@ -2,7 +2,8 @@ import streamlit as st
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
-from langchain_google_genai import ChatGoogleGenerativeAI
+from google import genai
+from google.genai import types
 from pydantic import BaseModel, Field
 
 # Page Configuration
@@ -15,23 +16,16 @@ st.set_page_config(
 # Professional Creative Water Theme CSS (Removing White Top Header & Glassmorphism)
 st.markdown("""
     <style>
-    /* Completely remove Streamlit default top header bar */
     header[data-testid="stHeader"] {
         display: none !important;
     }
-    
-    /* Creative Water Background Gradient */
     .stApp {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
         background-attachment: fixed;
     }
-    
-    /* Text Styling for Dark Theme */
     h1, h2, h3, h4, h5, h6, p, label {
         color: #f0f4f8 !important;
     }
-    
-    /* Custom Styling for Buttons */
     .stButton>button {
         width: 100%;
         background: linear-gradient(90deg, #00b4d8 0%, #0077b6 100%);
@@ -48,8 +42,6 @@ st.markdown("""
         color: #03045e;
         box-shadow: 0 6px 20px rgba(144, 224, 239, 0.6);
     }
-    
-    /* Metric Cards Styling */
     [data-testid="stMetric"] {
         background: rgba(255, 255, 255, 0.07);
         backdrop-filter: blur(10px);
@@ -58,8 +50,6 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
-    
-    /* Sidebar Styling */
     [data-testid="stSidebar"] {
         background-color: rgba(15, 32, 39, 0.95);
         border-right: 1px solid rgba(255, 255, 255, 0.1);
@@ -85,7 +75,7 @@ with st.sidebar:
     st.markdown("### 🫧 Water Vibe Active")
     st.write("System running on secure cloud configuration.")
 
-# Pydantic schema for LangChain structured extraction
+# Pydantic schema for Gemini structured output
 class WaterParameters(BaseModel):
     pH: float = Field(description="pH level of the water, typically between 0 and 14")
     turbidity: float = Field(description="Turbidity level in NTU (Nephelometric Turbidity Units)")
@@ -148,11 +138,20 @@ with tab1:
         if api_key and user_query:
             try:
                 with st.spinner("✨ Gemini AI is extracting parameters..."):
-                    # Updated to gemini-1.5-pro / stable working model
-                    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0, google_api_key=api_key)
-                    structured_llm = llm.with_structured_output(WaterParameters)
-                    extracted = structured_llm.invoke(f"Extract water test parameters accurately from this text: {user_query}")
-                    ph_val, turbidity_val, tds_val = extracted.pH, extracted.turbidity, extracted.tds
+                    client = genai.Client(api_key=api_key)
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=f"Extract water test parameters accurately from this text: {user_query}",
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            response_schema=WaterParameters,
+                        ),
+                    )
+                    import json
+                    data = json.loads(response.text)
+                    ph_val = float(data.get("pH", 7.0))
+                    turbidity_val = float(data.get("turbidity", 5.0))
+                    tds_val = float(data.get("tds", 300.0))
                     st.success("Parameters successfully extracted via Gemini AI!")
             except Exception as e:
                 st.warning(f"AI Extraction warning ({e}). Using default fallback parameters.")
