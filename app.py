@@ -2,18 +2,15 @@ import streamlit as st
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
-import google.generativeai as genai
-import json
-from pydantic import BaseModel, Field
 
 # Page Configuration
 st.set_page_config(
-    page_title="Water Quality Assessment AI",
+    page_title="Water Quality Assessment System",
     page_icon="💧",
     layout="wide"
 )
 
-# Professional Creative Water Theme CSS
+# Professional Creative Water Theme CSS (Glassmorphism & Clean UI)
 st.markdown("""
     <style>
     header[data-testid="stHeader"] {
@@ -58,22 +55,19 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Header Section
-st.title("💧 AI-Powered Water Quality Assessment System")
-st.markdown("##### Advanced Water Safety Analytics powered by **Google Gemini AI** & **Fuzzy Logic Control Systems**")
+st.title("💧 Advanced Water Quality Assessment System")
+st.markdown("##### Professional Water Safety Analytics powered by **Fuzzy Logic Control Systems**")
 st.markdown("---")
-
-# Retrieve Gemini API Key securely from Streamlit Secrets
-api_key = ""
-if "GEMINI_API_KEY" in st.secrets:
-    api_key = st.secrets["GEMINI_API_KEY"]
 
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/water.png", width=70)
     st.header("🌊 Dashboard Info")
-    st.info("This professional tool evaluates water potability using artificial intelligence text parsing combined with precise fuzzy logic mathematics seamlessly.")
+    st.info("This system evaluates water potability and safety metrics instantly using precise fuzzy mathematics without external cloud dependencies.")
     st.markdown("---")
-    st.markdown("### 🫧 Water Vibe Active")
-    st.write("System running on secure cloud configuration.")
+    st.markdown("### 📊 Status Legend")
+    st.success("🟢 Safe (>70)")
+    st.warning("🟡 Moderate (40-70)")
+    st.error("🔴 Unsafe (<40)")
 
 # Fuzzy Logic Calculation Engine
 def evaluate_fuzzy_water(pH_val, turbidity_val, tds_val):
@@ -116,50 +110,52 @@ def evaluate_fuzzy_water(pH_val, turbidity_val, tds_val):
     except Exception:
         return 50.0
 
-# Input Selection Tabs (AI Text Analysis vs Manual Sliders)
-tab1, tab2 = st.tabs(["🤖 AI Text Description Analysis", "🎛️ Manual Parameter Sliders"])
+# New Feature Tabs: Preset Water Samples vs Manual Custom Sliders
+tab1, tab2 = st.tabs(["🧪 Quick Water Type Presets", "🎛️ Custom Parameter Sliders"])
 
-ph_val, turbidity_val, tds_val = 7.0, 5.0, 300.0
+ph_val, turbidity_val, tds_val = 7.2, 3.0, 200.0
 
 with tab1:
-    st.subheader("Natural Language Water Condition Input")
-    user_query = st.text_area(
-        "Describe water sample condition in plain text:",
-        "The water looks a bit cloudy, tastes slightly metallic, and the pH is around 6.8 with TDS near 350 ppm.",
-        height=110
-    )
-    if st.button("🚀 Analyze via Gemini AI"):
-        if api_key and user_query:
-            try:
-                with st.spinner("✨ Gemini AI is extracting parameters..."):
-                    genai.configure(api_key=api_key)
-                    # Using the standard gemini-1.5-flash with proper JSON prompt instruction
-                    model = genai.GenerativeModel('gemini-1.5-flash')
-                    prompt = f"""Extract water test parameters from the following text and return ONLY a valid JSON object with keys: "pH" (float), "turbidity" (float), and "tds" (float). No markdown formatting or extra text.
-                    Text: {user_query}"""
-                    
-                    response = model.generate_content(prompt)
-                    clean_text = response.text.strip().replace("```json", "").replace("```", "")
-                    data = json.loads(clean_text)
-                    
-                    ph_val = float(data.get("pH", 7.0))
-                    turbidity_val = float(data.get("turbidity", 5.0))
-                    tds_val = float(data.get("tds", 300.0))
-                    st.success("Parameters successfully extracted via Gemini AI!")
-            except Exception as e:
-                st.warning(f"AI Extraction warning ({e}). Using default fallback parameters.")
-        elif not api_key:
-            st.warning("⚠️ Gemini API key missing in Streamlit Secrets configuration.")
+    st.subheader("Select Standard Water Sample Type")
+    st.markdown("Choose from standard pre-configured water profiles to instantly analyze typical category safety:")
+    
+    col_p1, col_p2, col_p3, col_p4 = st.columns(4)
+    
+    preset_choice = None
+    with col_p1:
+        if st.button("🚰 Municipal Tap Water"):
+            preset_choice = (7.4, 2.0, 180.0)
+    with col_p2:
+        if st.button("🏞️ Borewell / Groundwater"):
+            preset_choice = (6.8, 12.0, 650.0)
+    with col_p3:
+        if st.button("🍾 Bottled Mineral Water"):
+            preset_choice = (7.0, 0.5, 90.0)
+    with col_p4:
+        if st.button("🌊 Contaminated / River"):
+            preset_choice = (5.5, 35.0, 850.0)
+
+    # Session state to hold preset or slider values
+    if "water_vals" not in st.session_state:
+        st.session_state.water_vals = (7.2, 3.0, 200.0)
+
+    if preset_choice:
+        st.session_state.water_vals = preset_choice
+        st.success("Preset sample loaded successfully!")
+
+    ph_val, turbidity_val, tds_val = st.session_state.water_vals
 
 with tab2:
-    st.subheader("Manual Parameter Adjustment")
+    st.subheader("Fine-Tune Parameters Manually")
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1:
-        ph_val = st.slider("pH Level", 0.0, 14.0, 7.2, 0.1)
+        ph_val = st.slider("pH Level (0 - 14)", 0.0, 14.0, float(ph_val), 0.1)
     with col_s2:
-        turbidity_val = st.slider("Turbidity (NTU)", 0.0, 50.0, 4.0, 0.5)
+        turbidity_val = st.slider("Turbidity (NTU)", 0.0, 50.0, float(turbidity_val), 0.5)
     with col_s3:
-        tds_val = st.slider("TDS (ppm)", 0.0, 1000.0, 250.0, 10.0)
+        tds_val = st.slider("TDS (ppm)", 0.0, 1000.0, float(tds_val), 10.0)
+    
+    st.session_state.water_vals = (ph_val, turbidity_val, tds_val)
 
 st.markdown("---")
 
