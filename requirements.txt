@@ -1,0 +1,9 @@
+streamlit
+scikit-fuzzy
+numpy
+scipy
+langchain
+langchain-core
+langchain-openai
+openai
+pydantic
