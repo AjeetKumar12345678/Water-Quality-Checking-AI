@@ -12,25 +12,23 @@ st.set_page_config(
     layout="wide"
 )
 
-# Professional Creative Water Theme CSS (Floating Bubbles & Glassmorphism)
+# Professional Creative Water Theme CSS (Removing White Top Header & Glassmorphism)
 st.markdown("""
     <style>
-    /* Creative Water Background Gradient with Animated Bubbles Vibe */
+    /* Completely remove Streamlit default top header bar */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+    
+    /* Creative Water Background Gradient */
     .stApp {
         background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
         background-attachment: fixed;
     }
     
-    /* Text Styling for Dark/Creative Theme */
+    /* Text Styling for Dark Theme */
     h1, h2, h3, h4, h5, h6, p, label {
         color: #f0f4f8 !important;
-    }
-    
-    /* Glassmorphism Containers */
-    div.stTabs [data-baseweb="tab-list"] {
-        background-color: rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 5px;
     }
     
     /* Custom Styling for Buttons */
@@ -74,7 +72,7 @@ st.title("💧 AI-Powered Water Quality Assessment System")
 st.markdown("##### Advanced Water Safety Analytics powered by **Google Gemini AI** & **Fuzzy Logic Control Systems**")
 st.markdown("---")
 
-# Retrieve Gemini API Key securely from Streamlit Secrets (Hidden from UI completely)
+# Retrieve Gemini API Key securely from Streamlit Secrets
 api_key = ""
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
@@ -150,7 +148,8 @@ with tab1:
         if api_key and user_query:
             try:
                 with st.spinner("✨ Gemini AI is extracting parameters..."):
-                    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0, google_api_key=api_key)
+                    # Updated to gemini-1.5-pro / stable working model
+                    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0, google_api_key=api_key)
                     structured_llm = llm.with_structured_output(WaterParameters)
                     extracted = structured_llm.invoke(f"Extract water test parameters accurately from this text: {user_query}")
                     ph_val, turbidity_val, tds_val = extracted.pH, extracted.turbidity, extracted.tds
