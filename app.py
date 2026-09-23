@@ -13,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Professional Creative Water Theme CSS (Removing White Top Header & Glassmorphism)
+# Professional Creative Water Theme CSS
 st.markdown("""
     <style>
     header[data-testid="stHeader"] {
@@ -140,7 +140,7 @@ with tab1:
                 with st.spinner("✨ Gemini AI is extracting parameters..."):
                     client = genai.Client(api_key=api_key)
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model='gemini-1.5-flash',
                         contents=f"Extract water test parameters accurately from this text: {user_query}",
                         config=types.GenerateContentConfig(
                             response_mime_type="application/json",
